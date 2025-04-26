@@ -1,3 +1,4 @@
+const { z } = require('zod');
 class AppError extends Error {
     constructor(message, statusCode) {
         super(message);
@@ -11,6 +12,15 @@ class AppError extends Error {
 const errorHandler = (err, req, res, next) => {
     err.statusCode = err.statusCode || 500;
     err.status = err.status || 'error';
+
+    if (err instanceof z.ZodError) {
+        res.status(400).json({
+            status: 'fail',
+            message: err.errors.map(e => e.message).join(', '),
+            errors: err.errors
+        });
+        return;
+    }
 
     if (process.env.NODE_ENV === 'development') {
         res.status(err.statusCode).json({
