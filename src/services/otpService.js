@@ -3,7 +3,6 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const OTP = prisma.otp;
 
-
 class OTPService {
     generateOTP() {
         return crypto.randomInt(100000, 999999).toString();
@@ -13,7 +12,7 @@ class OTPService {
         await OTP.deleteMany({
             where: {
                 user_id: user.id,
-                type: type,
+                type: type
             }
         });
 

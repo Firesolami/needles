@@ -16,7 +16,7 @@ const errorHandler = (err, req, res, next) => {
     if (err instanceof z.ZodError) {
         res.status(400).json({
             status: 'fail',
-            message: err.errors.map(e => e.message).join(', '),
+            message: err.errors.map((e) => e.message).join(', '),
             errors: err.errors
         });
         return;

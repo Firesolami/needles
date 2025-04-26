@@ -9,12 +9,24 @@ const emailService = require('../services/emailService');
 const otpService = require('../services/otpService');
 
 const userSchema = z.object({
-    username: z.string().min(3, 'Username must be at least 3 characters').max(30, 'Username must be at most 30 characters').regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
+    username: z
+        .string()
+        .min(3, 'Username must be at least 3 characters')
+        .max(30, 'Username must be at most 30 characters')
+        .regex(
+            /^[a-zA-Z0-9_]+$/,
+            'Username can only contain letters, numbers, and underscores'
+        ),
     email: z.string().email('Invalid email address'),
-    password: z.string().min(8, 'Password must be at least 8 characters')
+    password: z
+        .string()
+        .min(8, 'Password must be at least 8 characters')
         .regex(/[a-zA-Z]/, 'Password must contain at least one letter')
         .regex(/[0-9]/, 'Password must contain at least one number')
-        .regex(/[@$!%*?&]/, 'Password must contain at least one special character'),
+        .regex(
+            /[@$!%*?&]/,
+            'Password must contain at least one special character'
+        )
 });
 
 exports.signup = async (req, res, next) => {
@@ -49,9 +61,9 @@ exports.signup = async (req, res, next) => {
             data: {
                 email,
                 username,
-                password: hashedPassword,
+                password: hashedPassword
             }
-        })
+        });
 
         const otp = await otpService.createOTP(user, OtpType.VERIFICATION);
         await emailService.sendVerificationEmail(email, otp);
@@ -70,20 +82,24 @@ exports.verifyEmail = async (req, res, next) => {
     try {
         const { email, otp } = req.body;
 
-        const user = await User.findUnique({ 
+        const user = await User.findUnique({
             where: { email },
             select: {
                 id: true,
                 email: true,
                 username: true,
-                created_at: true,
+                created_at: true
             }
         });
         if (!user) {
             return next(new AppError('User not found', 404));
         }
 
-        const isValid = await otpService.verifyOTP(user, otp, OtpType.VERIFICATION);
+        const isValid = await otpService.verifyOTP(
+            user,
+            otp,
+            OtpType.VERIFICATION
+        );
         if (!isValid) {
             return next(new AppError('Invalid or expired OTP', 400));
         }
@@ -116,7 +132,12 @@ exports.login = async (req, res, next) => {
         const { email, username, password } = req.body;
 
         if ((!email && !username) || !password) {
-            return next(new AppError('Please provide email or username and password', 400));
+            return next(
+                new AppError(
+                    'Please provide email or username and password',
+                    400
+                )
+            );
         }
 
         const userQuery = email ? { email } : { username };
@@ -131,12 +152,13 @@ exports.login = async (req, res, next) => {
                 password: true,
                 username: true,
                 isVerified: true,
-                created_at: true,
+                created_at: true
             }
-        })
+        });
 
         if (!user || !(await bcrypt.compare(password, user.password))) {
-            if (username) return next(new AppError('Invalid username or password', 401));
+            if (username)
+                return next(new AppError('Invalid username or password', 401));
             return next(new AppError('Invalid email or password', 401));
         }
 
