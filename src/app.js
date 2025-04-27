@@ -9,6 +9,7 @@ const compression = require('compression');
 const { errorHandler } = require('./middleware/errorHandler');
 
 const authRoutes = require('./routes/authRoutes');
+const profileRoutes = require('./routes/profileRoutes');
 
 const app = express();
 
@@ -58,6 +59,7 @@ if (process.env.NODE_ENV === 'development') {
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/profile', profileRoutes);
 
 app.use('/ping', (req, res) => {
     res.status(200).json({
