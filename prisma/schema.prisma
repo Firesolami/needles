@@ -28,6 +28,7 @@ enum OtpType {
 model User {
   id          String    @id @default(uuid()) // UUID as primary key
   profile_pic_link      String?
+  profile_pic_public_id String?
   display_name   String?
   username    String    @unique
   bio         String?
