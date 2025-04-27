@@ -4,11 +4,7 @@ const { AppError } = require('./errorHandler');
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
-    const allowedTypes = [
-        'audio/',
-        'video/',
-        'image/',
-    ];
+    const allowedTypes = ['audio', 'video', 'image'];
 
     if (allowedTypes.includes(file.mimetype.split('/')[0])) {
         cb(null, true);
