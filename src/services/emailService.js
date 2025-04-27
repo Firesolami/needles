@@ -3,24 +3,32 @@ const { AppError } = require('../middleware/errorHandler');
 
 class EmailService {
     constructor() {
-        this.transporter = nodemailer.createTransport({
-            host: process.env.EMAIL_HOST,
-            port: process.env.EMAIL_PORT,
-            secure: process.env.EMAIL_SECURE === 'true',
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASSWORD
-            }
-        });
+        nodemailer
+            .createTestAccount()
+            .then((testAccount) => {
+                this.transporter = nodemailer.createTransport({
+                    host: process.env.EMAIL_HOST,
+                    port: process.env.EMAIL_PORT,
+                    secure: process.env.EMAIL_SECURE === 'true',
+                    auth: {
+                        user: testAccount.user,
+                        pass: testAccount.pass
+                    }
+                });
+            })
+            .catch((err) =>
+                console.error('Failed to create test account', err)
+            );
     }
 
     async sendVerificationEmail(email, otp) {
         try {
-            await this.transporter.sendMail({
-                from: process.env.EMAIL_FROM,
-                to: email,
-                subject: 'Verify Your Email Address',
-                html: `
+            await this.transporter.sendMail(
+                {
+                    from: process.env.EMAIL_FROM,
+                    to: email,
+                    subject: 'Verify Your Email Address',
+                    html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
             <h2 style="color: #2c3e50; margin-bottom: 20px;">Email Verification</h2>
             <p style="font-size: 16px; line-height: 1.5;">Your verification code is:</p>
@@ -34,7 +42,19 @@ class EmailService {
             <p style="font-weight: bold; color: #2c3e50;">The Needles Team</p>
           </div>
         `
-            });
+                },
+                (error, info) => {
+                    if (error) {
+                        return console.log('Error sending email:', error);
+                    }
+
+                    console.log('Message sent: %s', info.messageId);
+                    console.log(
+                        'Preview URL: %s',
+                        nodemailer.getTestMessageUrl(info)
+                    );
+                }
+            );
         } catch (error) {
             throw new AppError('Error sending verification email', 500);
         }
@@ -42,11 +62,12 @@ class EmailService {
 
     async sendPasswordResetEmail(email, otp) {
         try {
-            await this.transporter.sendMail({
-                from: process.env.EMAIL_FROM,
-                to: email,
-                subject: 'Password Reset Request',
-                html: `
+            await this.transporter.sendMail(
+                {
+                    from: process.env.EMAIL_FROM,
+                    to: email,
+                    subject: 'Password Reset Request',
+                    html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
             <h2 style="color: #2c3e50; margin-bottom: 20px;">Password Reset</h2>
             <p style="font-size: 16px; line-height: 1.5;">Your password reset code is:</p>
@@ -60,7 +81,19 @@ class EmailService {
             <p style="font-weight: bold; color: #2c3e50;">The Needles Team</p>
           </div>
         `
-            });
+                },
+                (error, info) => {
+                    if (error) {
+                        return console.log('Error sending email:', error);
+                    }
+
+                    console.log('Message sent: %s', info.messageId);
+                    console.log(
+                        'Preview URL: %s',
+                        nodemailer.getTestMessageUrl(info)
+                    );
+                }
+            );
         } catch (error) {
             throw new AppError('Error sending password reset email', 500);
         }

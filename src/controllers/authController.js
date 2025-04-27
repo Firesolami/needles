@@ -36,6 +36,11 @@ exports.signup = async (req, res, next) => {
 
         const existingUserErrors = [];
 
+        // await prisma.user.deleteMany({});
+        // console.log('Deleted all users');
+        // await prisma.otp.deleteMany({});
+        // console.log('Deleted all otps');
+
         const existingEmail = await User.findUnique({
             where: { email }
         });
