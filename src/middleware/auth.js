@@ -1,5 +1,8 @@
 const jwt = require('jsonwebtoken');
 const { AppError } = require('./errorHandler');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+const User = prisma.user;
 
 module.exports = async (req, res, next) => {
     try {
