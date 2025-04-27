@@ -114,11 +114,9 @@ exports.verifyEmail = async (req, res, next) => {
             data: { isVerified: true }
         });
 
-        const token = jwt.sign(
-            { id: user.id, email: user.email, username: user.username },
-            process.env.JWT_SECRET,
-            { expiresIn: process.env.JWT_EXPIRES_IN }
-        );
+        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+            expiresIn: process.env.JWT_EXPIRES_IN
+        });
 
         res.status(200).json({
             status: 'success',
@@ -171,11 +169,9 @@ exports.login = async (req, res, next) => {
             return next(new AppError('Please verify your email first', 401));
         }
 
-        const token = jwt.sign(
-            { id: user.id, email: user.email, username: user.username },
-            process.env.JWT_SECRET,
-            { expiresIn: process.env.JWT_EXPIRES_IN }
-        );
+        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+            expiresIn: process.env.JWT_EXPIRES_IN
+        });
 
         user.password = undefined;
         res.status(200).json({
