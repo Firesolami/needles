@@ -4,6 +4,7 @@ const { PrismaClient, OtpType } = require('@prisma/client');
 const prisma = new PrismaClient();
 const User = prisma.user;
 const { z } = require('zod');
+const generateDisplayName = require('../utils/displayNameGenerator');
 const { AppError } = require('../middleware/errorHandler');
 const emailService = require('../services/emailService');
 const otpService = require('../services/otpService');
@@ -93,6 +94,7 @@ exports.verifyEmail = async (req, res, next) => {
                 id: true,
                 email: true,
                 username: true,
+                display_name: true,
                 created_at: true
             }
         });
@@ -109,10 +111,15 @@ exports.verifyEmail = async (req, res, next) => {
             return next(new AppError('Invalid or expired OTP', 400));
         }
 
+        const display_name = generateDisplayName();
         await User.update({
             where: { email },
-            data: { isVerified: true }
+            data: {
+                isVerified: true,
+                display_name
+            }
         });
+        user.display_name = display_name;
 
         const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
             expiresIn: process.env.JWT_EXPIRES_IN
