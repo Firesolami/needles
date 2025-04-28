@@ -28,7 +28,9 @@ exports.follow = async (req, res, next) => {
         });
 
         if (existingFollow) {
-            return next(new AppError('You are already following this user', 400));
+            return next(
+                new AppError('You are already following this user', 400)
+            );
         }
 
         const follow = await Follower.create({
@@ -129,7 +131,7 @@ exports.getFollowStatus = async (req, res, next) => {
             status: 'success',
             data: {
                 follows_you: !!followed,
-                you_follow: !!follows,
+                you_follow: !!follows
             }
         });
     } catch (error) {
@@ -171,7 +173,7 @@ exports.getFollowers = async (req, res, next) => {
         res.status(200).json({
             status: 'success',
             data: {
-                followers: followers.map(f => f.follower)
+                followers: followers.map((f) => f.follower)
             }
         });
     } catch (error) {
@@ -242,7 +244,7 @@ exports.getFollowing = async (req, res, next) => {
         res.status(200).json({
             status: 'success',
             data: {
-                following: following.map(f => f.following)
+                following: following.map((f) => f.following)
             }
         });
     } catch (error) {

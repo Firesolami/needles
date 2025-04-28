@@ -8,7 +8,7 @@ const {
     getFollowing,
     getFollowStatus,
     getFollowerCount,
-    getFollowingCount,
+    getFollowingCount
 } = require('../controllers/followController');
 
 const router = express.Router();
