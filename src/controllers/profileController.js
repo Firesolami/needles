@@ -68,6 +68,7 @@ exports.setupProfile = async (req, res, next) => {
                 'image'
             );
             validatedData.profile_pic_link = uploadResult.secure_url;
+            validatedData.profile_pic_public_id = uploadResult.public_id;
         }
 
         const user = await User.update({
@@ -109,6 +110,7 @@ exports.updateProfile = async (req, res, next) => {
             select: {
                 id: true,
                 profile_pic_link: true,
+                profile_pic_public_id: true,
                 username: true,
                 username_changed_at: true,
                 bio: true,
@@ -202,7 +204,7 @@ exports.updateProfile = async (req, res, next) => {
 
         if (validatedData.profile_pic_public_id) {
             await deleteFromCloudinary(
-                validatedData.profile_pic_public_id,
+                previousUserDetails.profile_pic_public_id,
                 'image'
             );
         }
