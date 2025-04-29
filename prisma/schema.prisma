@@ -53,7 +53,7 @@ model User {
 
 model Post {
   id          String    @id @default(uuid())
-  body        String
+  body        String?
   user_id     String
   user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade) // Foreign key with cascading delete
   status      PostStatus    @default(DRAFT)
@@ -65,7 +65,9 @@ model Post {
   created_at  DateTime  @default(now())
   updated_at  DateTime  @updatedAt
   likes       Like[]    // One-to-Many with Like
+  likes_count Int      @default(0) // Count of likes
   dislikes    Dislike[] // One-to-Many with Dislike
+  dislikes_count Int   @default(0) // Count of dislikes
 }
 
 model Like {

@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Post" ADD COLUMN     "dislikes_count" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "likes_count" INTEGER NOT NULL DEFAULT 0,
+ALTER COLUMN "body" DROP NOT NULL;
