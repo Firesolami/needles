@@ -6,6 +6,7 @@ const {
     createPost,
     createDraft,
     getPostsByUser,
+    getPostById,
     getPostCountByUser,
     getDraftsByUser,
     getDraftCountByUser,
@@ -37,55 +38,46 @@ router.post(
     createDraft
 );
 
-router.get('/posts/:username', getPostsByUser);
+router.get('/posts', getPostsByUser);
 router.get('/posts/:username/count', getPostCountByUser);
+router.get('/posts/:id', getPostById);
 
 router.post('/posts/:id/toggle-like', toggleLike);
 router.post('/posts/:id/toggle-dislike', toggleDislike);
 
-router.get('/drafts/:username', getDraftsByUser);
+router.get('/drafts', getDraftsByUser);
 router.post('/drafts/:username/:id/post', createPostFromDraft);
 router.get('/drafts/:username/count', getDraftCountByUser);
 
 module.exports = router;
 
-// TODO
-
-// POSTS
-
-// IMPORTANT: specify post type and status when retrieving ✅
+////////////////////// DONE //////////////////////
 // get post count by user  ✅
 // get own posts ✅
 // get own drafts ✅
 // get draft count by user  ✅
 // post from drafts ✅
-
 // like post ✅
 // dislike post ✅
+// get post by id ✅
 
-// like logic for reposts
 
+///////////////////// TODO /////////////////////
+// NEXT
 // comment on post
 // quote post
 // share post
 // repost post
-
-// NEXT
-// get post by id
-// get post metrics: comments, likes, quotes, reposts count
-
 // get comments, quotes, reposts by post id
-
+// get post metrics: comments, likes, quotes, reposts count
 // delete post
+// like logic for reposts
 
-// MAKE SURE AS EFFICIENT AS POSSIBLE
-
+///////////////////// FINALLY ////////////////////
 // FEED
-
 // feed
 // feed from following
 // feed algorithm
 
 // CACHING AND OPTIMIZATION
-
 // caching

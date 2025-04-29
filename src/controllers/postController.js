@@ -109,6 +109,52 @@ exports.createPost = async (req, res, next) => {
     }
 };
 
+exports.getPostById = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        const post = await Post.findFirst({
+            where: {
+                id,
+                status: PostStatus.PUBLISHED,
+                type: PostType.ORIGINAL
+            },
+            select: {
+                id: true,
+                body: true,
+                media_links: true,
+                created_at: true,
+                type: true,
+                likes_count: true,
+                dislikes_count: true,
+                user: {
+                    select: {
+                        id: true,
+                        username: true,
+                        display_name: true,
+                        profile_pic_link: true
+                    }
+                }
+            }
+        });
+
+        if (!post) {
+            return next(new AppError('Post not found', 404));
+        }
+
+        post.media_links = post.media_links.map((link) => JSON.parse(link));
+
+        res.status(200).json({
+            status: 'success',
+            data: {
+                post
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 // TODO: Add like logic for is post is a repost
 
 exports.toggleLike = async (req, res, next) => {
@@ -431,7 +477,7 @@ exports.createPostFromDraft = async (req, res, next) => {
 exports.getPostsByUser = async (req, res, next) => {
     try {
         const { count = 10, page = 1 } = req.query;
-        const { username } = req.params;
+        const { username } = req.query;
 
         const user = await User.findUnique({ where: { username } });
 
@@ -514,7 +560,7 @@ exports.getPostCountByUser = async (req, res, next) => {
 exports.getDraftsByUser = async (req, res, next) => {
     try {
         const { count = 10, page = 1 } = req.query;
-        const { username } = req.params;
+        const { username } = req.query;
 
         const user = await User.findUnique({ where: { username } });
 
