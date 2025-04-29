@@ -6,12 +6,14 @@ const Like = prisma.like;
 const Dislike = prisma.dislike;
 const { z } = require('zod');
 const { AppError } = require('../middleware/errorHandler');
-const {
-    uploadToCloudinary
-} = require('../utils/cloudinary');
+const { uploadToCloudinary } = require('../utils/cloudinary');
 
 const postSchema = z.object({
-    body: z.string().min(1, 'Post body is required').max(300, 'Post body cannot exceed 300 characters').optional(),
+    body: z
+        .string()
+        .min(1, 'Post body is required')
+        .max(300, 'Post body cannot exceed 300 characters')
+        .optional()
 });
 
 exports.createPost = async (req, res, next) => {
@@ -21,27 +23,57 @@ exports.createPost = async (req, res, next) => {
         const audio = req.files?.audio || null;
         const images = req.files?.images || null;
         const video = req.files?.video || null;
-        
+
         const media_links = [];
         if (audio) {
             for (const file of audio) {
                 const { originalname, buffer } = file;
-                const { secure_url, public_id } = await uploadToCloudinary(buffer, originalname, 'raw');
-                media_links.push(JSON.stringify({ link: secure_url, type: 'audio', public_id }));
+                const { secure_url, public_id } = await uploadToCloudinary(
+                    buffer,
+                    originalname,
+                    'raw'
+                );
+                media_links.push(
+                    JSON.stringify({
+                        link: secure_url,
+                        type: 'audio',
+                        public_id
+                    })
+                );
             }
         }
         if (images) {
             for (const file of images) {
                 const { originalname, buffer } = file;
-                const { secure_url, public_id } = await uploadToCloudinary(buffer, originalname, 'image');
-                media_links.push(JSON.stringify({ link: secure_url, type: 'image', public_id }));
+                const { secure_url, public_id } = await uploadToCloudinary(
+                    buffer,
+                    originalname,
+                    'image'
+                );
+                media_links.push(
+                    JSON.stringify({
+                        link: secure_url,
+                        type: 'image',
+                        public_id
+                    })
+                );
             }
         }
         if (video) {
             for (const file of video) {
                 const { originalname, buffer } = file;
-                const { secure_url, public_id } = await uploadToCloudinary(buffer, originalname, 'video');
-                media_links.push(JSON.stringify({ link: secure_url, type: 'video', public_id }));
+                const { secure_url, public_id } = await uploadToCloudinary(
+                    buffer,
+                    originalname,
+                    'video'
+                );
+                media_links.push(
+                    JSON.stringify({
+                        link: secure_url,
+                        type: 'video',
+                        public_id
+                    })
+                );
             }
         }
 
@@ -64,7 +96,7 @@ exports.createPost = async (req, res, next) => {
             }
         });
 
-        post.media_links = media_links.map(obj => JSON.parse(obj));
+        post.media_links = media_links.map((obj) => JSON.parse(obj));
 
         res.status(201).json({
             status: 'success',
@@ -83,9 +115,9 @@ exports.toggleLike = async (req, res, next) => {
     try {
         const { id } = req.params;
         const post = await Post.findFirst({
-            where: { 
+            where: {
                 id,
-                status: PostStatus.PUBLISHED,
+                status: PostStatus.PUBLISHED
             },
             select: {
                 id: true,
@@ -169,9 +201,9 @@ exports.toggleDislike = async (req, res, next) => {
     try {
         const { id } = req.params;
         const post = await Post.findFirst({
-            where: { 
+            where: {
                 id,
-                status: PostStatus.PUBLISHED,
+                status: PostStatus.PUBLISHED
             },
             select: {
                 id: true,
@@ -257,27 +289,57 @@ exports.createDraft = async (req, res, next) => {
         const audio = req.files?.audio || null;
         const images = req.files?.images || null;
         const video = req.files?.video || null;
-        
+
         const media_links = [];
         if (audio) {
             for (const file of audio) {
                 const { originalname, buffer } = file;
-                const { secure_url, public_id } = await uploadToCloudinary(buffer, originalname, 'raw');
-                media_links.push(JSON.stringify({ link: secure_url, type: 'audio', public_id }));
+                const { secure_url, public_id } = await uploadToCloudinary(
+                    buffer,
+                    originalname,
+                    'raw'
+                );
+                media_links.push(
+                    JSON.stringify({
+                        link: secure_url,
+                        type: 'audio',
+                        public_id
+                    })
+                );
             }
         }
         if (images) {
             for (const file of images) {
                 const { originalname, buffer } = file;
-                const { secure_url, public_id } = await uploadToCloudinary(buffer, originalname, 'image');
-                media_links.push(JSON.stringify({ link: secure_url, type: 'image', public_id }));
+                const { secure_url, public_id } = await uploadToCloudinary(
+                    buffer,
+                    originalname,
+                    'image'
+                );
+                media_links.push(
+                    JSON.stringify({
+                        link: secure_url,
+                        type: 'image',
+                        public_id
+                    })
+                );
             }
         }
         if (video) {
             for (const file of video) {
                 const { originalname, buffer } = file;
-                const { secure_url, public_id } = await uploadToCloudinary(buffer, originalname, 'video');
-                media_links.push(JSON.stringify({ link: secure_url, type: 'video', public_id }));
+                const { secure_url, public_id } = await uploadToCloudinary(
+                    buffer,
+                    originalname,
+                    'video'
+                );
+                media_links.push(
+                    JSON.stringify({
+                        link: secure_url,
+                        type: 'video',
+                        public_id
+                    })
+                );
             }
         }
 
@@ -291,7 +353,7 @@ exports.createDraft = async (req, res, next) => {
             }
         });
 
-        draft.media_links = media_links.map(obj => JSON.parse(obj));
+        draft.media_links = media_links.map((obj) => JSON.parse(obj));
 
         res.status(201).json({
             status: 'success',
@@ -315,11 +377,16 @@ exports.createPostFromDraft = async (req, res, next) => {
         }
 
         if (user.id !== req.user.id) {
-            return next(new AppError('You are not authorized to manage this user\'s drafts', 403));
+            return next(
+                new AppError(
+                    "You are not authorized to manage this user's drafts",
+                    403
+                )
+            );
         }
 
         const draft = await Post.findFirst({
-            where: { 
+            where: {
                 id,
                 user_id: user.id,
                 status: PostStatus.DRAFT,
@@ -343,11 +410,11 @@ exports.createPostFromDraft = async (req, res, next) => {
         await Post.update({
             where: { id: draft.id },
             data: {
-                status: PostStatus.PUBLISHED,
+                status: PostStatus.PUBLISHED
             }
         });
 
-        draft.media_links = draft.media_links.map(link => JSON.parse(link));
+        draft.media_links = draft.media_links.map((link) => JSON.parse(link));
         draft.status = PostStatus.PUBLISHED;
 
         res.status(201).json({
@@ -373,7 +440,7 @@ exports.getPostsByUser = async (req, res, next) => {
         }
 
         const posts = await Post.findMany({
-            where: { 
+            where: {
                 user_id: user.id,
                 status: PostStatus.PUBLISHED,
                 type: PostType.ORIGINAL
@@ -401,7 +468,7 @@ exports.getPostsByUser = async (req, res, next) => {
         });
 
         for (const post of posts) {
-            post.media_links = post.media_links.map(link => JSON.parse(link));
+            post.media_links = post.media_links.map((link) => JSON.parse(link));
         }
 
         res.status(200).json({
@@ -426,7 +493,7 @@ exports.getPostCountByUser = async (req, res, next) => {
         }
 
         const posts = await Post.findMany({
-            where: { 
+            where: {
                 user_id: user.id,
                 status: PostStatus.PUBLISHED,
                 type: PostType.ORIGINAL
@@ -456,11 +523,16 @@ exports.getDraftsByUser = async (req, res, next) => {
         }
 
         if (user.id !== req.user.id) {
-            return next(new AppError('You are not authorized to view this user\'s drafts', 403));
+            return next(
+                new AppError(
+                    "You are not authorized to view this user's drafts",
+                    403
+                )
+            );
         }
 
         const drafts = await Post.findMany({
-            where: { 
+            where: {
                 user_id: user.id,
                 status: PostStatus.DRAFT,
                 type: PostType.ORIGINAL
@@ -473,12 +545,14 @@ exports.getDraftsByUser = async (req, res, next) => {
                 body: true,
                 media_links: true,
                 created_at: true,
-                type: true,
+                type: true
             }
         });
 
         for (const draft of drafts) {
-            draft.media_links = draft.media_links.map(link => JSON.parse(link));
+            draft.media_links = draft.media_links.map((link) =>
+                JSON.parse(link)
+            );
         }
 
         res.status(200).json({
@@ -503,11 +577,16 @@ exports.getDraftCountByUser = async (req, res, next) => {
         }
 
         if (user.id !== req.user.id) {
-            return next(new AppError('You are not authorized to view this user\'s drafts', 403));
+            return next(
+                new AppError(
+                    "You are not authorized to view this user's drafts",
+                    403
+                )
+            );
         }
 
         const drafts = await Post.findMany({
-            where: { 
+            where: {
                 user_id: user.id,
                 status: PostStatus.DRAFT,
                 type: PostType.ORIGINAL

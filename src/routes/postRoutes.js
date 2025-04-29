@@ -11,23 +11,31 @@ const {
     getDraftCountByUser,
     createPostFromDraft,
     toggleLike,
-    toggleDislike,
+    toggleDislike
 } = require('../controllers/postController');
 
 const router = express.Router();
 
 router.use(protect);
 
-router.post('/posts', upload.fields([
-    { name: 'audio', maxCount: 4 },
-    { name: 'images', maxCount: 4 },
-    { name: 'video', maxCount: 4 }
-]), createPost);
-router.post('/drafts', upload.fields([
-    { name: 'audio', maxCount: 4 },
-    { name: 'images', maxCount: 4 },
-    { name: 'video', maxCount: 4 }
-]), createDraft);
+router.post(
+    '/posts',
+    upload.fields([
+        { name: 'audio', maxCount: 4 },
+        { name: 'images', maxCount: 4 },
+        { name: 'video', maxCount: 4 }
+    ]),
+    createPost
+);
+router.post(
+    '/drafts',
+    upload.fields([
+        { name: 'audio', maxCount: 4 },
+        { name: 'images', maxCount: 4 },
+        { name: 'video', maxCount: 4 }
+    ]),
+    createDraft
+);
 
 router.get('/posts/:username', getPostsByUser);
 router.get('/posts/:username/count', getPostCountByUser);
@@ -65,7 +73,6 @@ module.exports = router;
 // NEXT
 // get post by id
 // get post metrics: comments, likes, quotes, reposts count
-
 
 // get comments, quotes, reposts by post id
 

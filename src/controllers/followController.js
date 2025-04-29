@@ -167,7 +167,7 @@ exports.getFollowers = async (req, res, next) => {
                 }
             },
             take: parseInt(count),
-            skip: (parseInt(page) - 1) * parseInt(count),
+            skip: (parseInt(page) - 1) * parseInt(count)
         });
 
         res.status(200).json({
@@ -238,7 +238,7 @@ exports.getFollowing = async (req, res, next) => {
                 }
             },
             take: parseInt(count),
-            skip: (parseInt(page) - 1) * parseInt(count),
+            skip: (parseInt(page) - 1) * parseInt(count)
         });
 
         res.status(200).json({
