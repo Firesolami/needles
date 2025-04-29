@@ -11,6 +11,7 @@ const { errorHandler } = require('./middleware/errorHandler');
 const authRoutes = require('./routes/authRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const followRoutes = require('./routes/followRoutes');
+const postRoutes = require('./routes/postRoutes');
 
 const app = express();
 
@@ -62,6 +63,7 @@ if (process.env.NODE_ENV === 'development') {
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/follow', followRoutes);
+app.use('/api/post', postRoutes);
 
 app.use('/ping', (req, res) => {
     res.status(200).json({
