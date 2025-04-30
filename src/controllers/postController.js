@@ -6,7 +6,10 @@ const Like = prisma.like;
 const Dislike = prisma.dislike;
 const { z } = require('zod');
 const { AppError } = require('../middleware/errorHandler');
-const { uploadToCloudinary } = require('../utils/cloudinary');
+const {
+    uploadToCloudinary,
+    deleteFromCloudinary
+} = require('../utils/cloudinary');
 
 const postSchema = z.object({
     body: z
@@ -574,6 +577,94 @@ exports.getPostsByUser = async (req, res, next) => {
             data: {
                 posts
             }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.deletePost = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        const ownedPost = await Post.findFirst({
+            where: {
+                id,
+                status: PostStatus.PUBLISHED
+            },
+            select: {
+                id: true,
+                user_id: true
+            }
+        });
+
+        if (!ownedPost) {
+            return next(new AppError('Post not found', 404));
+        }
+
+        if (ownedPost.user_id !== req.user.id) {
+            return next(
+                new AppError('You are not authorized to delete this post', 403)
+            );
+        }
+
+        ///////////////////// Reecursive ///////////////////////
+        async function fetchPostWithChildren(postId) {
+            const post = await Post.findFirst({
+                where: { id: postId, status: PostStatus.PUBLISHED },
+                select: {
+                    id: true,
+                    media_links: true,
+                    children: {
+                        select: {
+                            id: true,
+                            media_links: true
+                        }
+                    }
+                }
+            });
+
+            if (post && post.children.length > 0) {
+                for (const child of post.children) {
+                    child.children = await fetchPostWithChildren(child.id);
+                }
+            }
+
+            return post;
+        }
+
+        const post = await fetchPostWithChildren(id);
+
+        async function deleteMediaFromPostsWithChildren(post) {
+            if (post) {
+                for (const media of post.media_links) {
+                    await deleteFromCloudinary(media.public_id);
+                    console.log(
+                        `Deleted media of Post: ${post.id} with Public ID: ${media.public_id}`
+                    );
+                }
+
+                post.children = Array.isArray(post.children)
+                    ? post.children
+                    : [];
+                for (const child of post.children) {
+                    await deleteMediaFromPostsWithChildren(child);
+                }
+            }
+        }
+
+        await deleteMediaFromPostsWithChildren(post);
+
+        ///////////////////////////////////////////////////////
+
+        await Post.delete({
+            where: { id }
+        });
+
+        res.status(204).json({
+            status: 'success',
+            message:
+                'All posts, children and respective media deleted successfully.'
         });
     } catch (error) {
         next(error);

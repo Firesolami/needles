@@ -7,6 +7,7 @@ const {
     createDraft,
     getPostsByUser,
     getPostById,
+    deletePost,
     getPostCountByUser,
     getDraftsByUser,
     getDraftCountByUser,
@@ -47,6 +48,7 @@ router.post(
 router.get('/posts', getPostsByUser);
 router.get('/posts/:username/count', getPostCountByUser);
 router.get('/posts/:id', getPostById);
+router.delete('/posts/:id', deletePost);
 
 router.post('/posts/:id/toggle-like', toggleLike);
 router.post('/posts/:id/toggle-dislike', toggleDislike);
@@ -90,13 +92,15 @@ module.exports = router;
 ///////////////////// TODO /////////////////////
 // NEXT
 // delete post
-// share post
 // add fields like liked by user, disliked by user, reposted by user, quoted by user, commented by user
 
 ///////////////////// FINALLY ////////////////////
 // FEED
 // feed
 // feed from following
+
+// share post
+
 // feed algorithm
 
 // generic search
