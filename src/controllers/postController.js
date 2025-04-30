@@ -116,8 +116,8 @@ exports.getPostById = async (req, res, next) => {
         const post = await Post.findFirst({
             where: {
                 id,
-                status: PostStatus.PUBLISHED,
-                type: PostType.ORIGINAL
+                status: PostStatus.PUBLISHED
+                // type: PostType.ORIGINAL
             },
             select: {
                 id: true,
@@ -134,6 +134,17 @@ exports.getPostById = async (req, res, next) => {
                         display_name: true,
                         profile_pic_link: true
                     }
+                },
+                parent: {
+                    select: {
+                        id: true,
+                        body: true,
+                        media_links: true,
+                        created_at: true,
+                        type: true,
+                        likes_count: true,
+                        dislikes_count: true
+                    }
                 }
             }
         });
@@ -143,6 +154,11 @@ exports.getPostById = async (req, res, next) => {
         }
 
         post.media_links = post.media_links.map((link) => JSON.parse(link));
+        if (post.parent) {
+            post.parent.media_links = post.parent.media_links.map((link) =>
+                JSON.parse(link)
+            );
+        }
 
         res.status(200).json({
             status: 'success',
@@ -488,8 +504,8 @@ exports.getPostsByUser = async (req, res, next) => {
         const posts = await Post.findMany({
             where: {
                 user_id: user.id,
-                status: PostStatus.PUBLISHED,
-                type: PostType.ORIGINAL
+                status: PostStatus.PUBLISHED
+                // type: PostType.ORIGINAL
             },
             take: parseInt(count),
             skip: (parseInt(page) - 1) * parseInt(count),
@@ -509,12 +525,36 @@ exports.getPostsByUser = async (req, res, next) => {
                         display_name: true,
                         profile_pic_link: true
                     }
+                },
+                parent: {
+                    select: {
+                        id: true,
+                        body: true,
+                        media_links: true,
+                        created_at: true,
+                        type: true,
+                        likes_count: true,
+                        dislikes_count: true,
+                        user: {
+                            select: {
+                                id: true,
+                                username: true,
+                                display_name: true,
+                                profile_pic_link: true
+                            }
+                        }
+                    }
                 }
             }
         });
 
         for (const post of posts) {
             post.media_links = post.media_links.map((link) => JSON.parse(link));
+            if (post.parent) {
+                post.parent.media_links = post.parent.media_links.map((link) =>
+                    JSON.parse(link)
+                );
+            }
         }
 
         res.status(200).json({
@@ -541,8 +581,8 @@ exports.getPostCountByUser = async (req, res, next) => {
         const posts = await Post.findMany({
             where: {
                 user_id: user.id,
-                status: PostStatus.PUBLISHED,
-                type: PostType.ORIGINAL
+                status: PostStatus.PUBLISHED
+                // type: PostType.ORIGINAL
             }
         });
 
@@ -643,6 +683,142 @@ exports.getDraftCountByUser = async (req, res, next) => {
             status: 'success',
             data: {
                 count: drafts.length
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.createQuote = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        const quotedPost = await Post.findFirst({
+            where: { id, status: PostStatus.PUBLISHED },
+            select: {
+                id: true,
+                quotes_count: true
+            }
+        });
+        if (!quotedPost) {
+            return next(new AppError('Post not found', 404));
+        }
+
+        const validatedData = postSchema.parse(req.body);
+        const { body } = validatedData;
+        const audio = req.files?.audio || null;
+        const images = req.files?.images || null;
+        const video = req.files?.video || null;
+
+        const media_links = [];
+        if (audio) {
+            for (const file of audio) {
+                const { originalname, buffer } = file;
+                const { secure_url, public_id } = await uploadToCloudinary(
+                    buffer,
+                    originalname,
+                    'raw'
+                );
+                media_links.push(
+                    JSON.stringify({
+                        link: secure_url,
+                        type: 'audio',
+                        public_id
+                    })
+                );
+            }
+        }
+        if (images) {
+            for (const file of images) {
+                const { originalname, buffer } = file;
+                const { secure_url, public_id } = await uploadToCloudinary(
+                    buffer,
+                    originalname,
+                    'image'
+                );
+                media_links.push(
+                    JSON.stringify({
+                        link: secure_url,
+                        type: 'image',
+                        public_id
+                    })
+                );
+            }
+        }
+        if (video) {
+            for (const file of video) {
+                const { originalname, buffer } = file;
+                const { secure_url, public_id } = await uploadToCloudinary(
+                    buffer,
+                    originalname,
+                    'video'
+                );
+                media_links.push(
+                    JSON.stringify({
+                        link: secure_url,
+                        type: 'video',
+                        public_id
+                    })
+                );
+            }
+        }
+
+        const quote = await Post.create({
+            data: {
+                body,
+                user: { connect: { id: req.user.id } },
+                status: PostStatus.PUBLISHED,
+                type: PostType.QUOTE,
+                media_links,
+                parent: { connect: { id: quotedPost.id } }
+            },
+            select: {
+                id: true,
+                body: true,
+                media_links: true,
+                created_at: true,
+                type: true,
+                likes_count: true,
+                dislikes_count: true,
+                parent: {
+                    select: {
+                        id: true,
+                        body: true,
+                        media_links: true,
+                        created_at: true,
+                        type: true,
+                        likes_count: true,
+                        dislikes_count: true
+                    }
+                },
+                user: {
+                    select: {
+                        id: true,
+                        username: true,
+                        display_name: true,
+                        profile_pic_link: true
+                    }
+                }
+            }
+        });
+
+        quote.media_links = media_links.map((obj) => JSON.parse(obj));
+        quote.parent.media_links = quote.parent.media_links.map((link) =>
+            JSON.parse(link)
+        );
+
+        await Post.update({
+            where: { id: quotedPost.id },
+            data: {
+                quotes_count: quotedPost.quotes_count + 1
+            }
+        });
+
+        res.status(201).json({
+            status: 'success',
+            data: {
+                quote
             }
         });
     } catch (error) {

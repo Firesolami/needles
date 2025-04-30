@@ -11,6 +11,7 @@ const {
     getDraftsByUser,
     getDraftCountByUser,
     createPostFromDraft,
+    createQuote,
     toggleLike,
     toggleDislike
 } = require('../controllers/postController');
@@ -49,6 +50,8 @@ router.get('/drafts', getDraftsByUser);
 router.post('/drafts/:username/:id/post', createPostFromDraft);
 router.get('/drafts/:username/count', getDraftCountByUser);
 
+router.post('/posts/:id/quotes', createQuote);
+
 module.exports = router;
 
 ////////////////////// DONE //////////////////////
@@ -60,12 +63,11 @@ module.exports = router;
 // like post ✅
 // dislike post ✅
 // get post by id ✅
-
+// quote post ✅
 
 ///////////////////// TODO /////////////////////
 // NEXT
 // comment on post
-// quote post
 // share post
 // repost post
 // get comments, quotes, reposts by post id
