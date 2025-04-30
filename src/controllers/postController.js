@@ -593,8 +593,10 @@ exports.getPostCountByUser = async (req, res, next) => {
         const posts = await Post.findMany({
             where: {
                 user_id: user.id,
-                status: PostStatus.PUBLISHED
-                // type: PostType.ORIGINAL
+                status: PostStatus.PUBLISHED,
+                type: {
+                    in: [PostType.ORIGINAL, PostType.QUOTE]
+                }
             }
         });
 
@@ -1229,6 +1231,85 @@ exports.createRepost = async (req, res, next) => {
             status: 'success',
             data: {
                 repost
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.getRepliesByUser = async (req, res, next) => {
+    try {
+        const { count = 10, page = 1 } = req.query;
+        const { username } = req.params;
+
+        const user = await User.findUnique({ where: { username } });
+
+        if (!user) {
+            return next(new AppError('User not found', 404));
+        }
+
+        const posts = await Post.findMany({
+            where: {
+                user_id: user.id,
+                status: PostStatus.PUBLISHED,
+                type: {
+                    in: [PostType.REPOST, PostType.REPLY]
+                }
+            },
+            take: parseInt(count),
+            skip: (parseInt(page) - 1) * parseInt(count),
+            orderBy: { created_at: 'desc' },
+            select: {
+                id: true,
+                body: true,
+                media_links: true,
+                created_at: true,
+                type: true,
+                ...postMetrics,
+                user: {
+                    select: {
+                        id: true,
+                        username: true,
+                        display_name: true,
+                        profile_pic_link: true
+                    }
+                },
+                parent: {
+                    select: {
+                        id: true,
+                        body: true,
+                        media_links: true,
+                        created_at: true,
+                        type: true,
+                        likes_count: true,
+                        dislikes_count: true,
+                        user: {
+                            select: {
+                                id: true,
+                                username: true,
+                                display_name: true,
+                                profile_pic_link: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        for (const post of posts) {
+            post.media_links = post.media_links.map((link) => JSON.parse(link));
+            if (post.parent) {
+                post.parent.media_links = post.parent.media_links.map((link) =>
+                    JSON.parse(link)
+                );
+            }
+        }
+
+        res.status(200).json({
+            status: 'success',
+            data: {
+                posts
             }
         });
     } catch (error) {

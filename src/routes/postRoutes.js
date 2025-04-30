@@ -16,6 +16,7 @@ const {
     createComment,
     getCommentsForPost,
     createRepost,
+    getRepliesByUser,
     toggleLike,
     toggleDislike
 } = require('../controllers/postController');
@@ -62,6 +63,8 @@ router.get('/posts/:id/comments', getCommentsForPost);
 
 router.post('/posts/:id/reposts', createRepost);
 
+router.get('/posts/:username/replies', getRepliesByUser);
+
 module.exports = router;
 
 ////////////////////// DONE //////////////////////
@@ -82,10 +85,10 @@ module.exports = router;
 ///////////////////////
 // get comments, quotes by post id ✅
 // get post metrics: comments, likes, quotes, reposts count ✅
+// get reposts, comments (replies) by user ✅
 
 ///////////////////// TODO /////////////////////
 // NEXT
-// get reposts, comments (replies) by user
 // delete post
 // share post
 // add fields like liked by user, disliked by user, reposted by user, quoted by user, commented by user
