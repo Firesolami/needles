@@ -16,6 +16,14 @@ const postSchema = z.object({
         .optional()
 });
 
+const postMetrics = {
+    likes_count: true,
+    dislikes_count: true,
+    comments_count: true,
+    reposts_count: true,
+    quotes_count: true
+};
+
 exports.createPost = async (req, res, next) => {
     try {
         const validatedData = postSchema.parse(req.body);
@@ -91,8 +99,7 @@ exports.createPost = async (req, res, next) => {
                 media_links: true,
                 created_at: true,
                 type: true,
-                likes_count: true,
-                dislikes_count: true
+                ...postMetrics
             }
         });
 
@@ -125,8 +132,7 @@ exports.getPostById = async (req, res, next) => {
                 media_links: true,
                 created_at: true,
                 type: true,
-                likes_count: true,
-                dislikes_count: true,
+                ...postMetrics,
                 user: {
                     select: {
                         id: true,
@@ -464,8 +470,7 @@ exports.createPostFromDraft = async (req, res, next) => {
                 media_links: true,
                 created_at: true,
                 type: true,
-                likes_count: true,
-                dislikes_count: true
+                ...postMetrics
             }
         });
 
@@ -524,8 +529,7 @@ exports.getPostsByUser = async (req, res, next) => {
                 media_links: true,
                 created_at: true,
                 type: true,
-                likes_count: true,
-                dislikes_count: true,
+                ...postMetrics,
                 user: {
                     select: {
                         id: true,
@@ -793,8 +797,7 @@ exports.createQuote = async (req, res, next) => {
                 media_links: true,
                 created_at: true,
                 type: true,
-                likes_count: true,
-                dislikes_count: true,
+                ...postMetrics,
                 parent: {
                     select: {
                         id: true,
@@ -882,8 +885,7 @@ exports.getQuotesForPost = async (req, res, next) => {
                 media_links: true,
                 created_at: true,
                 type: true,
-                likes_count: true,
-                dislikes_count: true,
+                ...postMetrics,
                 user: {
                     select: {
                         id: true,
@@ -1031,8 +1033,7 @@ exports.createComment = async (req, res, next) => {
                 media_links: true,
                 created_at: true,
                 type: true,
-                likes_count: true,
-                dislikes_count: true,
+                ...postMetrics,
                 parent: {
                     select: {
                         id: true,
@@ -1109,8 +1110,7 @@ exports.getCommentsForPost = async (req, res, next) => {
                 media_links: true,
                 created_at: true,
                 type: true,
-                likes_count: true,
-                dislikes_count: true,
+                ...postMetrics,
                 user: {
                     select: {
                         id: true,

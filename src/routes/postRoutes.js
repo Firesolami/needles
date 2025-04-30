@@ -76,15 +76,15 @@ module.exports = router;
 // quote post ✅
 // comment on post ✅
 // repost post ✅
-////// IMPORTANT ////// 
-// like logic for reposts, creat quote from reposts, comment on reposts ✅
+////// IMPORTANT //////
+// like logic for reposts, create quote from reposts, comment on reposts ✅
 // scratch that. ensure post is not repost before performing like, dislike, repost, quote, comment ✅
 ///////////////////////
 // get comments, quotes by post id ✅
+// get post metrics: comments, likes, quotes, reposts count ✅
 
 ///////////////////// TODO /////////////////////
 // NEXT
-// get post metrics: comments, likes, quotes, reposts count
 // get reposts, comments (replies) by user
 // delete post
 // share post
@@ -95,6 +95,8 @@ module.exports = router;
 // feed
 // feed from following
 // feed algorithm
+
+// generic search
 
 // CACHING AND OPTIMIZATION
 // caching
