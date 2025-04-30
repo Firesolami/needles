@@ -12,6 +12,7 @@ const {
     getDraftCountByUser,
     createPostFromDraft,
     createQuote,
+    getQuotesForPost,
     toggleLike,
     toggleDislike
 } = require('../controllers/postController');
@@ -51,6 +52,7 @@ router.post('/drafts/:username/:id/post', createPostFromDraft);
 router.get('/drafts/:username/count', getDraftCountByUser);
 
 router.post('/posts/:id/quotes', createQuote);
+router.get('/posts/:id/quotes', getQuotesForPost);
 
 module.exports = router;
 

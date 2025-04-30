@@ -495,6 +495,10 @@ exports.getPostsByUser = async (req, res, next) => {
         const { count = 10, page = 1 } = req.query;
         const { username } = req.query;
 
+        if (!username) {
+            return next(new AppError('Username is required', 400));
+        }
+
         const user = await User.findUnique({ where: { username } });
 
         if (!user) {
@@ -789,7 +793,15 @@ exports.createQuote = async (req, res, next) => {
                         created_at: true,
                         type: true,
                         likes_count: true,
-                        dislikes_count: true
+                        dislikes_count: true,
+                        user: {
+                            select: {
+                                id: true,
+                                username: true,
+                                display_name: true,
+                                profile_pic_link: true
+                            }
+                        }
                     }
                 },
                 user: {
@@ -819,6 +831,83 @@ exports.createQuote = async (req, res, next) => {
             status: 'success',
             data: {
                 quote
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.getQuotesForPost = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        const quotedPost = await Post.findFirst({
+            where: { id, status: PostStatus.PUBLISHED }
+        });
+        if (!quotedPost) {
+            return next(new AppError('Post not found', 404));
+        }
+
+        const quotes = await Post.findMany({
+            where: {
+                parent_id: id,
+                status: PostStatus.PUBLISHED,
+                type: PostType.QUOTE
+            },
+            select: {
+                id: true,
+                body: true,
+                media_links: true,
+                created_at: true,
+                type: true,
+                likes_count: true,
+                dislikes_count: true,
+                user: {
+                    select: {
+                        id: true,
+                        username: true,
+                        display_name: true,
+                        profile_pic_link: true
+                    }
+                },
+                parent: {
+                    select: {
+                        id: true,
+                        body: true,
+                        media_links: true,
+                        created_at: true,
+                        type: true,
+                        likes_count: true,
+                        dislikes_count: true,
+                        user: {
+                            select: {
+                                id: true,
+                                username: true,
+                                display_name: true,
+                                profile_pic_link: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        for (const quote of quotes) {
+            quote.media_links = quote.media_links.map((link) =>
+                JSON.parse(link)
+            );
+            if (quote.parent) {
+                quote.parent.media_links = quote.parent.media_links.map(
+                    (link) => JSON.parse(link)
+                );
+            }
+        }
+
+        res.status(200).json({
+            status: 'success',
+            data: {
+                quotes
             }
         });
     } catch (error) {
