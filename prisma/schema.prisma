@@ -68,6 +68,9 @@ model Post {
   likes_count Int      @default(0) // Count of likes
   dislikes    Dislike[] // One-to-Many with Dislike
   dislikes_count Int   @default(0) // Count of dislikes
+  comments_count Int @default(0) // Count of comments
+  reposts_count Int @default(0) // Count of reposts
+  quotes_count Int @default(0) // Count of quotes
 }
 
 model Like {
