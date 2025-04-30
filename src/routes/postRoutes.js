@@ -88,21 +88,15 @@ module.exports = router;
 // get comments, quotes by post id ✅
 // get post metrics: comments, likes, quotes, reposts count ✅
 // get reposts, comments (replies) by user ✅
+// delete post ✅
+// add fields like liked by user, disliked by user, reposted by user, quoted by user, commented by user ✅
 
 ///////////////////// TODO /////////////////////
 // NEXT
-// delete post
-// add fields like liked by user, disliked by user, reposted by user, quoted by user, commented by user
-
-///////////////////// FINALLY ////////////////////
-// FEED
 // feed
 // feed from following
-
 // share post
-
 // feed algorithm
-
 // generic search
 
 // CACHING AND OPTIMIZATION

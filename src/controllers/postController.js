@@ -27,6 +27,33 @@ const postMetrics = {
     quotes_count: true
 };
 
+async function getPostMetricsByUser(userId, postId) {
+    const like = await Like.findFirst({
+        where: {
+            user_id: userId,
+            post_id: postId
+        }
+    });
+    const dislike = await Dislike.findFirst({
+        where: {
+            user_id: userId,
+            post_id: postId
+        }
+    });
+    const repost = await Post.findFirst({
+        where: {
+            user_id: userId,
+            parent_id: postId,
+            type: PostType.REPOST
+        }
+    });
+    return {
+        is_liked_by_user: !!like,
+        is_disliked_by_user: !!dislike,
+        is_reposted_by_user: !!repost
+    };
+}
+
 exports.createPost = async (req, res, next) => {
     try {
         const validatedData = postSchema.parse(req.body);
@@ -168,6 +195,8 @@ exports.getPostById = async (req, res, next) => {
                 JSON.parse(link)
             );
         }
+
+        post.userMetrics = await getPostMetricsByUser(req.user.id, post.id);
 
         res.status(200).json({
             status: 'success',
@@ -564,6 +593,22 @@ exports.getPostsByUser = async (req, res, next) => {
         });
 
         for (const post of posts) {
+            // Get metrics
+            let userPostMetrics = {};
+            if (post.type === PostType.REPOST) {
+                userPostMetrics = await getPostMetricsByUser(
+                    req.user.id,
+                    post.parent.id
+                );
+            } else {
+                userPostMetrics = await getPostMetricsByUser(
+                    req.user.id,
+                    post.id
+                );
+            }
+            post.userMetrics = userPostMetrics;
+
+            // Parse media links
             post.media_links = post.media_links.map((link) => JSON.parse(link));
             if (post.parent) {
                 post.parent.media_links = post.parent.media_links.map((link) =>
@@ -661,11 +706,7 @@ exports.deletePost = async (req, res, next) => {
             where: { id }
         });
 
-        res.status(204).json({
-            status: 'success',
-            message:
-                'All posts, children and respective media deleted successfully.'
-        });
+        res.status(204);
     } catch (error) {
         next(error);
     }
@@ -1010,6 +1051,11 @@ exports.getQuotesForPost = async (req, res, next) => {
         });
 
         for (const quote of quotes) {
+            quote.userMetrics = await getPostMetricsByUser(
+                req.user.id,
+                quote.id
+            );
+
             quote.media_links = quote.media_links.map((link) =>
                 JSON.parse(link)
             );
@@ -1227,6 +1273,10 @@ exports.getCommentsForPost = async (req, res, next) => {
         });
 
         for (const comment of comments) {
+            comment.userMetrics = await getPostMetricsByUser(
+                req.user.id,
+                comment.id
+            );
             comment.media_links = comment.media_links.map((link) =>
                 JSON.parse(link)
             );
@@ -1389,6 +1439,19 @@ exports.getRepliesByUser = async (req, res, next) => {
         });
 
         for (const post of posts) {
+            let userPostMetrics = {};
+            if (post.type === PostType.REPOST) {
+                userPostMetrics = await getPostMetricsByUser(
+                    req.user.id,
+                    post.parent.id
+                );
+            } else {
+                userPostMetrics = await getPostMetricsByUser(
+                    req.user.id,
+                    post.id
+                );
+            }
+            post.userMetrics = userPostMetrics;
             post.media_links = post.media_links.map((link) => JSON.parse(link));
             if (post.parent) {
                 post.parent.media_links = post.parent.media_links.map((link) =>
