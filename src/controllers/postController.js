@@ -171,15 +171,16 @@ exports.getPostById = async (req, res, next) => {
     }
 };
 
-// TODO: Add like logic for is post is a repost
-
 exports.toggleLike = async (req, res, next) => {
     try {
         const { id } = req.params;
         const post = await Post.findFirst({
             where: {
                 id,
-                status: PostStatus.PUBLISHED
+                status: PostStatus.PUBLISHED,
+                type: {
+                    in: [PostType.ORIGINAL, PostType.QUOTE, PostType.REPLY]
+                }
             },
             select: {
                 id: true,
@@ -265,7 +266,10 @@ exports.toggleDislike = async (req, res, next) => {
         const post = await Post.findFirst({
             where: {
                 id,
-                status: PostStatus.PUBLISHED
+                status: PostStatus.PUBLISHED,
+                type: {
+                    in: [PostType.ORIGINAL, PostType.QUOTE, PostType.REPLY]
+                }
             },
             select: {
                 id: true,
@@ -699,7 +703,13 @@ exports.createQuote = async (req, res, next) => {
         const { id } = req.params;
 
         const quotedPost = await Post.findFirst({
-            where: { id, status: PostStatus.PUBLISHED },
+            where: {
+                id,
+                status: PostStatus.PUBLISHED,
+                type: {
+                    in: [PostType.ORIGINAL, PostType.QUOTE, PostType.REPLY]
+                }
+            },
             select: {
                 id: true,
                 quotes_count: true
@@ -844,7 +854,13 @@ exports.getQuotesForPost = async (req, res, next) => {
         const { id } = req.params;
 
         const quotedPost = await Post.findFirst({
-            where: { id, status: PostStatus.PUBLISHED }
+            where: {
+                id,
+                status: PostStatus.PUBLISHED,
+                type: {
+                    in: [PostType.ORIGINAL, PostType.QUOTE, PostType.REPLY]
+                }
+            }
         });
         if (!quotedPost) {
             return next(new AppError('Post not found', 404));
@@ -925,7 +941,13 @@ exports.createComment = async (req, res, next) => {
         const { id } = req.params;
 
         const repliedPost = await Post.findFirst({
-            where: { id, status: PostStatus.PUBLISHED },
+            where: {
+                id,
+                status: PostStatus.PUBLISHED,
+                type: {
+                    in: [PostType.ORIGINAL, PostType.QUOTE, PostType.REPLY]
+                }
+            },
             select: {
                 id: true,
                 comments_count: true
@@ -1059,7 +1081,13 @@ exports.getCommentsForPost = async (req, res, next) => {
         const { count = 10, page = 1 } = req.query;
 
         const repliedPost = await Post.findFirst({
-            where: { id, status: PostStatus.PUBLISHED }
+            where: {
+                id,
+                status: PostStatus.PUBLISHED,
+                type: {
+                    in: [PostType.ORIGINAL, PostType.QUOTE, PostType.REPLY]
+                }
+            }
         });
         if (!repliedPost) {
             return next(new AppError('Post not found', 404));

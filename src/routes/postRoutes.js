@@ -71,16 +71,18 @@ module.exports = router;
 // dislike post ✅
 // get post by id ✅
 // quote post ✅
+////// IMPORTANT ////// 
+// like logic for reposts, creat quote from reposts, comment on reposts ✅
+// scratch that. ensure post is not repost before performing like, dislike, repost, quote, comment ✅
+///////////////////////
 
 ///////////////////// TODO /////////////////////
 // NEXT
-// comment on post
-// repost post
-// get comments, quotes, reposts by post id
 // get post metrics: comments, likes, quotes, reposts count
-// like logic for reposts
+// get reposts, comments (replies) by user
 // delete post
 // share post
+// add fields like liked by user, disliked by user, reposted by user, quoted by user, commented by user
 
 ///////////////////// FINALLY ////////////////////
 // FEED
