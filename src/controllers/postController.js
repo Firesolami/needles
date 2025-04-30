@@ -1149,3 +1149,89 @@ exports.getCommentsForPost = async (req, res, next) => {
         next(error);
     }
 };
+
+exports.createRepost = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        const repostedPost = await Post.findFirst({
+            where: {
+                id,
+                status: PostStatus.PUBLISHED,
+                type: {
+                    in: [PostType.ORIGINAL, PostType.QUOTE, PostType.REPLY]
+                }
+            },
+            select: {
+                id: true,
+                reposts_count: true
+            }
+        });
+        if (!repostedPost) {
+            return next(new AppError('Post not found', 404));
+        }
+
+        const repost = await Post.create({
+            data: {
+                user: { connect: { id: req.user.id } },
+                status: PostStatus.PUBLISHED,
+                type: PostType.REPOST,
+                parent: { connect: { id: repostedPost.id } }
+            },
+            select: {
+                id: true,
+                created_at: true,
+                type: true,
+                parent: {
+                    select: {
+                        id: true,
+                        body: true,
+                        media_links: true,
+                        created_at: true,
+                        type: true,
+                        likes_count: true,
+                        dislikes_count: true,
+                        user: {
+                            select: {
+                                id: true,
+                                username: true,
+                                display_name: true,
+                                profile_pic_link: true
+                            }
+                        }
+                    }
+                },
+                user: {
+                    select: {
+                        id: true,
+                        username: true,
+                        display_name: true,
+                        profile_pic_link: true
+                    }
+                }
+            }
+        });
+
+        repost.parent.media_links = repost.parent.media_links.map((link) =>
+            JSON.parse(link)
+        );
+        repost.likes_count = repostedPost.likes_count;
+        repost.dislikes_count = repostedPost.dislikes_count;
+
+        await Post.update({
+            where: { id: repostedPost.id },
+            data: {
+                reposts_count: repostedPost.reposts_count + 1
+            }
+        });
+
+        res.status(201).json({
+            status: 'success',
+            data: {
+                repost
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};

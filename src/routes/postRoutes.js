@@ -15,6 +15,7 @@ const {
     getQuotesForPost,
     createComment,
     getCommentsForPost,
+    createRepost,
     toggleLike,
     toggleDislike
 } = require('../controllers/postController');
@@ -59,6 +60,8 @@ router.get('/posts/:id/quotes', getQuotesForPost);
 router.post('/posts/:id/comments', createComment);
 router.get('/posts/:id/comments', getCommentsForPost);
 
+router.post('/posts/:id/reposts', createRepost);
+
 module.exports = router;
 
 ////////////////////// DONE //////////////////////
@@ -71,10 +74,13 @@ module.exports = router;
 // dislike post ✅
 // get post by id ✅
 // quote post ✅
+// comment on post ✅
+// repost post ✅
 ////// IMPORTANT ////// 
 // like logic for reposts, creat quote from reposts, comment on reposts ✅
 // scratch that. ensure post is not repost before performing like, dislike, repost, quote, comment ✅
 ///////////////////////
+// get comments, quotes by post id ✅
 
 ///////////////////// TODO /////////////////////
 // NEXT
