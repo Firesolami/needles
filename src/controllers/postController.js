@@ -840,6 +840,7 @@ exports.createQuote = async (req, res, next) => {
 
 exports.getQuotesForPost = async (req, res, next) => {
     try {
+        const { count = 10, page = 1 } = req.query;
         const { id } = req.params;
 
         const quotedPost = await Post.findFirst({
@@ -855,6 +856,10 @@ exports.getQuotesForPost = async (req, res, next) => {
                 status: PostStatus.PUBLISHED,
                 type: PostType.QUOTE
             },
+
+            take: parseInt(count),
+            skip: (parseInt(page) - 1) * parseInt(count),
+            orderBy: { created_at: 'desc' },
             select: {
                 id: true,
                 body: true,
@@ -1012,7 +1017,7 @@ exports.createComment = async (req, res, next) => {
                         user: {
                             select: {
                                 id: true,
-                                username: true,
+                                username: true
                             }
                         }
                     }
@@ -1066,7 +1071,7 @@ exports.getCommentsForPost = async (req, res, next) => {
                 status: PostStatus.PUBLISHED,
                 type: PostType.REPLY
             },
-            
+
             take: parseInt(count),
             skip: (parseInt(page) - 1) * parseInt(count),
             orderBy: { created_at: 'desc' },
