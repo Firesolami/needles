@@ -505,23 +505,23 @@ exports.createPostFromDraft = async (req, res, next) => {
 exports.getPostsByUser = async (req, res, next) => {
     try {
         const { count = 10, page = 1 } = req.query;
-        const { username } = req.query;
-
-        if (!username) {
-            return next(new AppError('Username is required', 400));
-        }
+        const { username = '' } = req.query;
 
         const user = await User.findUnique({ where: { username } });
 
-        if (!user) {
+        if (!user && username) {
             return next(new AppError('User not found', 404));
         }
 
+        const user_id = user ? user.id : req.user.id;
+
         const posts = await Post.findMany({
             where: {
-                user_id: user.id,
-                status: PostStatus.PUBLISHED
-                // type: PostType.ORIGINAL
+                user_id,
+                status: PostStatus.PUBLISHED,
+                type: {
+                    in: [PostType.ORIGINAL, PostType.QUOTE, PostType.REPOST]
+                }
             },
             take: parseInt(count),
             skip: (parseInt(page) - 1) * parseInt(count),
