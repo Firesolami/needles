@@ -49,6 +49,7 @@ model User {
   followers   Follower[] @relation("Following") // Many-to-Many with User (self-referencing)
   following   Follower[] @relation("Follower") // Many-to-Many with User (self-referencing)
   otps        Otp[]     // One-to-Many with Otp
+  bookmarks   Bookmark[] // One-to-Many with Bookmark
 }
 
 model Post {
@@ -62,6 +63,7 @@ model Post {
   parent_id   String?   // Nullable foreign key for replies or quotes
   parent      Post?     @relation("ParentPost", fields: [parent_id], references: [id], onDelete: Cascade) // Self-referencing relation for replies/quotes
   children    Post[]    @relation("ParentPost") // Self-referencing relation for replies/quotes    
+  bookmarks   Bookmark[] // One-to-Many with Bookmark
   created_at  DateTime  @default(now())
   updated_at  DateTime  @updatedAt
   likes       Like[]    // One-to-Many with Like
@@ -71,6 +73,17 @@ model Post {
   comments_count Int @default(0) // Count of comments
   reposts_count Int @default(0) // Count of reposts
   quotes_count Int @default(0) // Count of quotes
+  bookmarks_count Int @default(0) // Count of bookmarks
+}
+
+model Bookmark {
+  id          String    @id @default(uuid())
+  post_id     String
+  user_id     String
+  post        Post      @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  created_at  DateTime  @default(now())
+  @@unique([post_id, user_id]) // Composite unique constraint
 }
 
 model Like {
