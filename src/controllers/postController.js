@@ -4,6 +4,7 @@ const Post = prisma.post;
 const User = prisma.user;
 const Like = prisma.like;
 const Dislike = prisma.dislike;
+const Bookmark = prisma.bookmark;
 const { z } = require('zod');
 const { AppError } = require('../middleware/errorHandler');
 const {
@@ -24,7 +25,8 @@ const postMetrics = {
     dislikes_count: true,
     comments_count: true,
     reposts_count: true,
-    quotes_count: true
+    quotes_count: true,
+    bookmarks_count: true,
 };
 
 async function getPostMetricsByUser(userId, postId) {
@@ -577,8 +579,7 @@ exports.getPostsByUser = async (req, res, next) => {
                         media_links: true,
                         created_at: true,
                         type: true,
-                        likes_count: true,
-                        dislikes_count: true,
+                        ...postMetrics,
                         user: {
                             select: {
                                 id: true,
@@ -939,8 +940,7 @@ exports.createQuote = async (req, res, next) => {
                         media_links: true,
                         created_at: true,
                         type: true,
-                        likes_count: true,
-                        dislikes_count: true,
+                        ...postMetrics,
                         user: {
                             select: {
                                 id: true,
@@ -1035,8 +1035,7 @@ exports.getQuotesForPost = async (req, res, next) => {
                         media_links: true,
                         created_at: true,
                         type: true,
-                        likes_count: true,
-                        dislikes_count: true,
+                        ...postMetrics,
                         user: {
                             select: {
                                 id: true,
@@ -1332,8 +1331,7 @@ exports.createRepost = async (req, res, next) => {
                         media_links: true,
                         created_at: true,
                         type: true,
-                        likes_count: true,
-                        dislikes_count: true,
+                        ...postMetrics,
                         user: {
                             select: {
                                 id: true,
@@ -1423,8 +1421,7 @@ exports.getRepliesByUser = async (req, res, next) => {
                         media_links: true,
                         created_at: true,
                         type: true,
-                        likes_count: true,
-                        dislikes_count: true,
+                        ...postMetrics,
                         user: {
                             select: {
                                 id: true,
@@ -1466,6 +1463,234 @@ exports.getRepliesByUser = async (req, res, next) => {
                 posts
             }
         });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.createBookmark = async (req, res, next) => {
+    try {
+        const { id } = req.query;
+
+        if (!id) {
+            return next(new AppError('Post ID is required', 400));
+        }
+
+        const post = await Post.findFirst({
+            where: {
+                id,
+                status: PostStatus.PUBLISHED,
+                type: {
+                    in: [PostType.ORIGINAL, PostType.QUOTE, PostType.REPLY]
+                }
+            },
+            select: {
+                id: true,
+                body: true,
+                media_links: true,
+                created_at: true,
+                type: true,
+                ...postMetrics,
+                parent: {
+                    select: {
+                        id: true,
+                        body: true,
+                        media_links: true,
+                        created_at: true,
+                        type: true,
+                        ...postMetrics,
+                        user: {
+                            select: {
+                                id: true,
+                                username: true,
+                                display_name: true,
+                                profile_pic_link: true
+                            }
+                        }
+                    }
+                },
+                user: {
+                    select: {
+                        id: true,
+                        username: true,
+                        display_name: true,
+                        profile_pic_link: true
+                    }
+                }
+            }
+        });
+
+        if (!post) {
+            return next(new AppError('Post not found', 404));
+        }
+
+        post.userMetrics =  await getPostMetricsByUser(
+            req.user.id,
+            post.id
+        );
+
+        post.media_links = post.media_links.map((link) => JSON.parse(link));
+        if (post.parent) {
+            post.parent.media_links = post.parent.media_links.map((link) =>
+                JSON.parse(link)
+            );
+        }
+
+        const existingBookmark = await Bookmark.findFirst({
+            where: {
+                user_id: req.user.id,
+                post_id: post.id
+            }
+        });
+
+        if (existingBookmark) {
+            return next(new AppError('Post already bookmarked', 400));
+        }
+
+        const bookmark = await Bookmark.create({
+            data: {
+                user: { connect: { id: req.user.id } },
+                post: { connect: { id: post.id } }
+            },
+            select: {
+                id: true,
+                created_at: true
+            }
+        });
+
+        await Post.update({
+            where: { id: post.id },
+            data: {
+                bookmarks_count: post.bookmarks_count + 1
+            }
+        });
+
+        post.bookmarks_count = post.bookmarks_count + 1;
+
+        bookmark.post = post;
+
+        res.status(201).json({
+            status: 'success',
+            data: {
+                bookmark
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.getBookmarksByUser = async (req, res, next) => {
+    try {
+        const { count = 10, page = 1 } = req.query;
+
+        const bookmarks = await Bookmark.findMany({
+            where: {
+                user_id: req.user.id
+            },
+            take: parseInt(count),
+            skip: (parseInt(page) - 1) * parseInt(count),
+            orderBy: { created_at: 'desc' },
+            select: {
+                id: true,
+                post: {select: {
+                id: true,
+                body: true,
+                media_links: true,
+                created_at: true,
+                type: true,
+                ...postMetrics,
+                user: {
+                    select: {
+                        id: true,
+                        username: true,
+                        display_name: true,
+                        profile_pic_link: true
+                    }
+                },
+                parent: {
+                    select: {
+                        id: true,
+                        body: true,
+                        media_links: true,
+                        created_at: true,
+                        type: true,
+                        ...postMetrics,
+                        user: {
+                            select: {
+                                id: true,
+                                username: true,
+                                display_name: true,
+                                profile_pic_link: true
+                            }
+                        }
+                    }
+                }
+            }}}
+        });
+
+        for (const bookmark of bookmarks) {
+            bookmark.post.userMetrics = await getPostMetricsByUser(
+                req.user.id,
+                bookmark.post.id
+            );
+            bookmark.post.media_links = bookmark.post.media_links.map((link) => JSON.parse(link));
+            if (bookmark.post.parent) {
+                bookmark.post.parent.media_links = bookmark.post.parent.media_links.map((link) =>
+                    JSON.parse(link)
+                );
+            }
+        }
+
+        res.status(200).json({
+            status: 'success',
+            data: {
+                bookmarks
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.deleteBookmark = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        const bookmark = await Bookmark.findFirst({
+            where: {
+                user_id: req.user.id,
+                id
+            },
+            select: {
+                id: true,
+                post: {
+                    select: {
+                        id: true,
+                        bookmarks_count: true
+                    }
+                }
+            }
+        });
+
+        if (!bookmark) {
+            return next(new AppError('Bookmark not found', 404));
+        }
+
+        await Post.update({
+            where: { id: bookmark.post.id },
+            data: {
+                bookmarks_count: bookmark.post.bookmarks_count - 1
+            }
+        });
+
+        await Bookmark.delete({
+            where: {
+                id: bookmark.id
+            }
+        });
+
+        res.status(204);
     } catch (error) {
         next(error);
     }
