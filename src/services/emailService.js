@@ -3,27 +3,20 @@ const { AppError } = require('../middleware/errorHandler');
 
 class EmailService {
     constructor() {
-        nodemailer
-            .createTestAccount()
-            .then((testAccount) => {
-                this.transporter = nodemailer.createTransport({
-                    host: process.env.EMAIL_HOST,
-                    port: process.env.EMAIL_PORT,
-                    secure: process.env.EMAIL_SECURE === 'true',
-                    auth: {
-                        user: testAccount.user,
-                        pass: testAccount.pass
-                    }
-                });
-            })
-            .catch((err) =>
-                console.error('Failed to create test account', err)
-            );
-    }
+            this.transporter = nodemailer.createTransport({
+                host: process.env.EMAIL_HOST,
+                port: process.env.EMAIL_PORT,
+                secure: process.env.EMAIL_SECURE === 'true',
+                auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASSWORD
+                }
+            });
+        }
 
     async sendVerificationEmail(email, otp) {
         try {
-            await this.transporter.sendMail(
+            this.transporter.sendMail(
                 {
                     from: process.env.EMAIL_FROM,
                     to: email,
@@ -49,10 +42,6 @@ class EmailService {
                     }
 
                     console.log('Message sent: %s', info.messageId);
-                    console.log(
-                        'Preview URL: %s',
-                        nodemailer.getTestMessageUrl(info)
-                    );
                 }
             );
         } catch (error) {
@@ -62,7 +51,7 @@ class EmailService {
 
     async sendPasswordResetEmail(email, otp) {
         try {
-            await this.transporter.sendMail(
+            this.transporter.sendMail(
                 {
                     from: process.env.EMAIL_FROM,
                     to: email,
@@ -88,10 +77,6 @@ class EmailService {
                     }
 
                     console.log('Message sent: %s', info.messageId);
-                    console.log(
-                        'Preview URL: %s',
-                        nodemailer.getTestMessageUrl(info)
-                    );
                 }
             );
         } catch (error) {
